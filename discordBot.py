@@ -21,9 +21,12 @@ class Printer(commands.Cog):
 
     @commands.command(name="toggle_print")
     async def toggle_print(self, ctx: commands.Context):
-        self.canPrint = not self.canPrint
-        await ctx.message.delete()
-        await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
+        if(ctx.author.id == config.get("ADMIN_ID")):
+            self.canPrint = not self.canPrint
+            await ctx.message.delete()
+            await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
+        else: 
+            await ctx.send("Sorry but you are not authorized to use this command")
     
     @nextcord.slash_command(guild_ids=test_guilds, name="check_status", description="Please don't use this function")
     async def check(self, inter:nextcord.Interaction):
