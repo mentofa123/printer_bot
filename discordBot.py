@@ -1,6 +1,5 @@
 import os
 import sys
-from xmlrpc.client import Boolean
 import nextcord
 from nextcord.ext import commands
 import requests
@@ -32,7 +31,7 @@ class Printer(commands.Cog):
             await self.send_not_available(inter) 
 
     @nextcord.slash_command(name="print_image", guild_ids=test_guilds, description="print an image")
-    async def print_image(self, inter:nextcord.Interaction, deleteimage: Boolean = nextcord.SlashOption(name="deleteimage", description="delete Image after printing", required=False, default=False)):
+    async def print_image(self, inter:nextcord.Interaction, deleteimage: bool = nextcord.SlashOption(name="deleteimage", description="delete Image after printing", required=False, default=False)):
         if(self.canPrint):
             await inter.send("please send an image or type 'abort' to abort this process")
             await inter.followup.fetch_message(inter.channel.last_message_id)
