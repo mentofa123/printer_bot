@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "./discordBot.py"]
+CMD [ "python", "-u", "./discordBot.py"]
