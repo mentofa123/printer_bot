@@ -4,12 +4,15 @@ import nextcord
 from nextcord.ext import commands
 import requests
 import base64
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from typing import Union
 
-load_dotenv()
+config = {
+    **os.environ,
+    **dotenv_values(".env")
+}
 
-test_guilds=[int(os.getenv("TEST_GUILD"))]
+test_guilds=[int(config.get("TEST_GUILD"))]
 
 class Printer(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -93,7 +96,7 @@ class Printer(commands.Cog):
                 }
             ]
         }
-        printResponse = requests.post(f"{os.getenv('API_URL')}/print_zettel", json=body)
+        printResponse = requests.post(f"{config.get('API_URL')}/print_zettel", json=body)
         if(printResponse.status_code == 200):
             await inter.edit_original_message(content="Printed sucessfully")
         else: 
@@ -104,7 +107,7 @@ class Printer(commands.Cog):
         await inter.send("Sorry this feature is currently not available")
 
     def isReady(self):
-        response = requests.get(f"{os.getenv('API_URL')}/ready")
+        response = requests.get(f"{config.get('API_URL')}/ready")
         if(response.status_code == 200):
             return response.json()["ready"]
         else: 
@@ -123,4 +126,4 @@ async def on_error(event, arg):
     #TODO send message to myself when an error pops up
     print(sys.exc_info())
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+bot.run(config.get("DISCORD_TOKEN"))
