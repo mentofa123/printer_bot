@@ -38,7 +38,9 @@ class Printer(commands.Cog):
             await inter.followup.fetch_message(inter.channel.last_message_id)
             message: nextcord.Message = await self.bot.wait_for("message", check=self.check_for_image(inter.user, inter.channel.id))
             if(message.content.lower() == "abort"):
-                await inter.edit_original_message(content="aborted image printing") 
+                await inter.edit_original_message(content="aborted image printing")
+                if(deleteimage):
+                    await message.delete() 
             else:
                 await inter.edit_original_message(content="image received. Start printing")
                 response = requests.get(message.attachments[0].url if len(message.attachments) == 1 else message.stickers[0].url)
