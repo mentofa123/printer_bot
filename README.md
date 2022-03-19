@@ -2,7 +2,7 @@
 
 It's a bot. It's for discord. Maybe it sends stuff to a printer.
 
-Currently support 3 slash_commands: 
+Currently support the following slash_commands: 
 | command      | description                                                                                                                                                                                                  |
 |--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | print_text   | Prints the message given by the text variable.  Emojis are currently not supported and will show weirdly                                                                                                     |
