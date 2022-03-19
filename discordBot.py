@@ -1,27 +1,30 @@
 import os
+import sys
 from xmlrpc.client import Boolean
 import nextcord
 from nextcord.ext import commands
 import requests
 import base64
 from dotenv import load_dotenv
+from typing import Union
 
 load_dotenv()
 
 test_guilds=[int(os.getenv("TEST_GUILD"))]
 
 class Printer(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.canPrint = True
 
     @commands.command(name="toggle_print")
-    async def toggle_print(self, ctx):
+    async def toggle_print(self, ctx: commands.Context):
         self.canPrint = not self.canPrint
+        await ctx.message.delete()
         await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
     
     @nextcord.slash_command(guild_ids=test_guilds, name="check_status", description="Please don't use this function")
-    async def check(self, inter):
+    async def check(self, inter:nextcord.Interaction):
         if(self.canPrint):
             isReady = self.isReady()
             await inter.response.send_message(f'i am {"ready" if isReady else "not ready"}')
@@ -33,18 +36,18 @@ class Printer(commands.Cog):
         if(self.canPrint):
             await inter.send("please send an image or type 'abort' to abort this process")
             await inter.followup.fetch_message(inter.channel.last_message_id)
-            msg: nextcord.Message = await self.bot.wait_for("message", check=self.check_for_image(inter.user, inter.channel.id))
-            if(msg.content.lower() == "abort"):
+            message: nextcord.Message = await self.bot.wait_for("message", check=self.check_for_image(inter.user, inter.channel.id))
+            if(message.content.lower() == "abort"):
                 await inter.edit_original_message(content="aborted image printing") 
             else:
                 await inter.edit_original_message(content="image received. Start printing")
-                response = requests.get(msg.attachments[0].url if len(msg.attachments) == 1 else msg.stickers[0].url)
+                response = requests.get(message.attachments[0].url if len(message.attachments) == 1 else message.stickers[0].url)
                 if(response.status_code == 200):
                     if(self.canPrint):
                         encodedImage = base64.b64encode(s=response.content).decode("utf-8")
                         await self.printer_print(inter=inter, text=encodedImage, type="image")
                         if(deleteimage):
-                            await msg.delete()
+                            await message.delete()
                     else:
                         await inter.edit_original_message(content="sorry the printing service is not available")
                 else: 
@@ -52,8 +55,8 @@ class Printer(commands.Cog):
         else: 
             await self.send_not_available(inter)
 
-    def check_for_image(self, author, channelId):
-        def inner_check(message):
+    def check_for_image(self, author: Union[nextcord.User, nextcord.Member,  None] , channelId: int):
+        def inner_check(message: nextcord.Message):
             if(message.author.id == author.id and message.channel.id == channelId):
                 if(message.content.lower() == "abort"):
                     return True
@@ -104,7 +107,7 @@ class Printer(commands.Cog):
         if(response.status_code == 200):
             return response.json()["ready"]
         else: 
-            return False;
+            return False
 
 
 bot = commands.Bot(command_prefix="/")
@@ -114,6 +117,9 @@ bot.add_cog(Printer(bot))
 async def on_ready():
     print("starting")
 
-
+@bot.event 
+async def on_error(event, arg):
+    #TODO
+    print(sys.exc_info())
 
 bot.run(os.getenv("DISCORD_TOKEN"))
