@@ -8,4 +8,4 @@ Road to Awesome:
 - Pull the Repository
 - Have a .env file lying around
 - Create a Docker Image
-- Run the docker image. command should be: `docker run -d --env-file=./.env [dockerimagename]`
+- Run the docker image.
