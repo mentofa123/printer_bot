@@ -120,7 +120,7 @@ async def on_ready():
 
 @bot.event 
 async def on_error(event, arg):
-    #TODO
+    #TODO send message to myself when an error pops up
     print(sys.exc_info())
 
 bot.run(os.getenv("DISCORD_TOKEN"))
