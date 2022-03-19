@@ -72,11 +72,11 @@ class Printer(commands.Cog):
         return inner_check
 
     @nextcord.slash_command(name="print_message", guild_ids=test_guilds, description="Print a text message", )
-    async def print_text(self, inter: nextcord.Interaction, text: str = nextcord.SlashOption(name="text", description="text to print")): 
+    async def print_message(self, inter: nextcord.Interaction, message: str = nextcord.SlashOption(name="message", description="text to print")): 
         if(self.canPrint):
             # if(self.isReady()):
-                await inter.send("printing")
-                await self.printer_print(inter=inter, text=text, type="text")
+                await inter.send(f"printing")
+                await self.printer_print(inter=inter, text=message, type="text")
             # else: 
             #     await inter.response.send_message("printer currently not ready")
         else: 
