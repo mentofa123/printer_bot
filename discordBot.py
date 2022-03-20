@@ -121,12 +121,19 @@ bot = commands.Bot(command_prefix="/")
 bot.add_cog(Printer(bot))
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    raise error
+
+@bot.event
 async def on_ready():
     print("starting")
 
 @bot.event 
 async def on_error(event, arg):
     #TODO send message to myself when an error pops up
+    print(event, arg)
     print(sys.exc_info())
 
 bot.run(config.get("DISCORD_TOKEN"))
