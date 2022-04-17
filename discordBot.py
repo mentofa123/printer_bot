@@ -12,12 +12,13 @@ config = {
     **dotenv_values(".env")
 }
 
-#stest_guilds=[int(config.get("TEST_GUILD"))]
+# test_guilds=[int(config.get("TEST_GUILD"))]
 
 class Printer(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.canPrint = True
+        self.image_print_state = dict()
 
     @commands.command(name="toggle_print")
     async def toggle_print(self, ctx: commands.Context):
@@ -35,52 +36,30 @@ class Printer(commands.Cog):
     #     else:
     #         await self.send_not_available(inter) 
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
             return
         raise error
 
-    @nextcord.slash_command(name="print_image",  description="print an image")
-    async def print_image(self, inter:nextcord.Interaction, deleteimage: bool = nextcord.SlashOption(name="deleteimage", description="delete Image after printing", required=False, default=False)):
+    @nextcord.slash_command(name="print_image", description="print an image")
+    async def print_image(self, inter:nextcord.Interaction, image: nextcord.Attachment = nextcord.SlashOption(name="image", description="image to print", required=True)):
         if(self.canPrint):
-            await inter.send("please send an image or type 'abort' to abort this process")
-            await inter.followup.fetch_message(inter.channel.last_message_id)
-            message: nextcord.Message = await self.bot.wait_for("message", check=self.check_for_image(inter.user, inter.channel.id))
-            if(message.content.lower() == "abort"):
-                await inter.edit_original_message(content="aborted image printing")
-                if(deleteimage):
-                    await message.delete() 
-            else:
-                await inter.edit_original_message(content="image received. Start printing")
-                response = requests.get(message.attachments[0].url if len(message.attachments) == 1 else message.stickers[0].url)
-                if(response.status_code == 200):
+            if(image.content_type.startswith("image/")):
+                await inter.send("Image received. Start printing")
+                responseimage = requests.get(image.url)
+                if(responseimage.status_code == 200):
                     if(self.canPrint):
-                        encodedImage = base64.b64encode(s=response.content).decode("utf-8")
-                        await self.printer_print(inter=inter, text=encodedImage, type="image")
-                        if(deleteimage):
-                            await message.delete()
-                    else:
-                        await inter.edit_original_message(content="sorry the printing service is not available")
-                else: 
-                   await inter.edit_original_message(content="Oh something went wrong while receiving the image please try again")
+                        encodedImage = base64.b64encode(s=responseimage.content).decode("utf-8")
+                        await self.printer_print(inter= inter, text=encodedImage, type="image")
+                    else: 
+                        await inter.edit_original_message("Sorry the printing service is not available. Please try again later")
+                else:
+                    inter.edit_original_message("Something went wrong receiving your image. Please try again")
+            else:
+                await inter.send("That's not an image. Please send an image")
         else: 
             await self.send_not_available(inter)
-
-    def check_for_image(self, author: Union[nextcord.User, nextcord.Member,  None] , channelId: int):
-        def inner_check(message: nextcord.Message):
-            if(message.author.id == author.id and message.channel.id == channelId):
-                if(message.content.lower() == "abort"):
-                    return True
-                elif (len(message.attachments) == 1 and message.attachments[0].content_type.startswith("image/")):
-                    return True
-                elif(len(message.stickers) == 1):
-                    return True
-                else:
-                    return False
-            else: 
-                return False
-        return inner_check
 
     @nextcord.slash_command(name="print_message",  description="Print a text message", )
     async def print_message(self, inter: nextcord.Interaction, message: str = nextcord.SlashOption(name="message", description="text to print")): 
@@ -96,7 +75,7 @@ class Printer(commands.Cog):
     async def printer_print(self, inter:nextcord.Interaction, text:str, type: str):
         body = {
         "author":f"{inter.user.display_name}",
-        "origin": inter.channel.name,
+        "origin": inter.channel.name if not isinstance(inter.channel, nextcord.channel.PartialMessageable) else "",
         "content": [
                 {
                     "data": text,
@@ -112,7 +91,7 @@ class Printer(commands.Cog):
             await inter.edit_original_message(content='Something went wrong')
 
     async def send_not_available(self, inter: nextcord.Interaction):
-        await inter.send("Sorry this feature is currently not available")
+        await inter.send("Sorry this feature is currently not available. Please try again later")
 
     def isReady(self):
         response = requests.get(f"{config.get('API_URL')}/ready")
