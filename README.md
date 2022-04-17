@@ -16,3 +16,9 @@ Road to Awesome:
 - Have a .env file lying around
 - Create a Docker Image
 - Run the docker image
+
+
+
+
+
+TODO: DECIDE WHETHER TO REMOVE EMOJIS FROM USERNAME AND CHANNEL OR NOT 

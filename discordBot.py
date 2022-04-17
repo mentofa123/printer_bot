@@ -12,7 +12,7 @@ config = {
     **dotenv_values(".env")
 }
 
-test_guilds=[int(config.get("TEST_GUILD"))]
+#stest_guilds=[int(config.get("TEST_GUILD"))]
 
 class Printer(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -21,22 +21,27 @@ class Printer(commands.Cog):
 
     @commands.command(name="toggle_print")
     async def toggle_print(self, ctx: commands.Context):
-        if(ctx.author.id == config.get("ADMIN_ID")):
+        if(str(ctx.author.id) == config.get("ADMIN_ID")):
             self.canPrint = not self.canPrint
-            await ctx.message.delete()
             await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
         else: 
             await ctx.send("Sorry but you are not authorized to use this command")
     
-    @nextcord.slash_command(guild_ids=test_guilds, name="check_status", description="Please don't use this function")
-    async def check(self, inter:nextcord.Interaction):
-        if(self.canPrint):
-            isReady = self.isReady()
-            await inter.response.send_message(f'i am {"ready" if isReady else "not ready"}')
-        else:
-            await self.send_not_available(inter) 
+    # @nextcord.slash_command(name="check_status", description="Please don't use this function")
+    # async def check(self, inter:nextcord.Interaction):
+    #     if(self.canPrint):
+    #         isReady = self.isReady()
+    #         await inter.response.send_message(f'i am {"ready" if isReady else "not ready"}')
+    #     else:
+    #         await self.send_not_available(inter) 
 
-    @nextcord.slash_command(name="print_image", guild_ids=test_guilds, description="print an image")
+    @commands.Cog.listener
+    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.CommandNotFound):
+            return
+        raise error
+
+    @nextcord.slash_command(name="print_image",  description="print an image")
     async def print_image(self, inter:nextcord.Interaction, deleteimage: bool = nextcord.SlashOption(name="deleteimage", description="delete Image after printing", required=False, default=False)):
         if(self.canPrint):
             await inter.send("please send an image or type 'abort' to abort this process")
@@ -77,7 +82,7 @@ class Printer(commands.Cog):
                 return False
         return inner_check
 
-    @nextcord.slash_command(name="print_message", guild_ids=test_guilds, description="Print a text message", )
+    @nextcord.slash_command(name="print_message",  description="Print a text message", )
     async def print_message(self, inter: nextcord.Interaction, message: str = nextcord.SlashOption(name="message", description="text to print")): 
         if(self.canPrint):
             # if(self.isReady()):
@@ -130,10 +135,5 @@ async def on_command_error(ctx, error):
 async def on_ready():
     print("starting")
 
-@bot.event 
-async def on_error(event, arg):
-    #TODO send message to myself when an error pops up
-    print(event, arg)
-    print(sys.exc_info())
 
 bot.run(config.get("DISCORD_TOKEN"))
