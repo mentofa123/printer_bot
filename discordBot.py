@@ -5,7 +5,7 @@ from nextcord.ext import commands
 import requests
 import base64
 from dotenv import dotenv_values
-from typing import Union
+import json
 
 config = {
     **os.environ,
@@ -22,12 +22,15 @@ class Printer(commands.Cog):
 
     @commands.command(name="toggle_print")
     async def toggle_print(self, ctx: commands.Context):
-        if(str(ctx.author.id) == config.get("ADMIN_ID")):
+        if(self.admin_check(ctx.author.id)):
             self.canPrint = not self.canPrint
             await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
         else: 
             await ctx.send("Sorry but you are not authorized to use this command")
     
+    def admin_check(self, authorId: int):
+        return any(authorId == id for id in json.loads(config.get("ADMIN_ID")))
+
     # @nextcord.slash_command(name="check_status", description="Please don't use this function")
     # async def check(self, inter:nextcord.Interaction):
     #     if(self.canPrint):
