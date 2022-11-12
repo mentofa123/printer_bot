@@ -7,7 +7,7 @@ Currently supports the following slash_commands:
 |--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | print_message   | Prints the message given by the text variable.  Emojis are currently not supported and will show up weirdly                                                                                                     |
 | print_image  | Prints the next picture/sticker the user sends in this channel. The user can abort this process by sending 'abort'  Message containing the image can be deleted afterwards (Same goes for the abort message) |
-| check_status | Checks the readiness status of the printer                                                                                                                                                                   |
+
 
 Road to Awesome:
 
