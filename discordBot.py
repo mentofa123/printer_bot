@@ -1,5 +1,4 @@
 import os
-import sys
 import nextcord
 from nextcord.ext import commands
 import requests
@@ -11,8 +10,6 @@ config = {
     **os.environ,
     **dotenv_values(".env")
 }
-
-# test_guilds=[int(config.get("TEST_GUILD"))]
 
 class Printer(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -29,15 +26,7 @@ class Printer(commands.Cog):
             await ctx.send("Sorry but you are not authorized to use this command")
     
     def admin_check(self, authorId: int):
-        return any(authorId == id for id in json.loads(config.get("ADMIN_ID")))
-
-    # @nextcord.slash_command(name="check_status", description="Please don't use this function")
-    # async def check(self, inter:nextcord.Interaction):
-    #     if(self.canPrint):
-    #         isReady = self.isReady()
-    #         await inter.response.send_message(f'i am {"ready" if isReady else "not ready"}')
-    #     else:
-    #         await self.send_not_available(inter) 
+        return any(authorId == id for id in json.loads(config.get("ADMIN_ID")))  
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
@@ -56,9 +45,9 @@ class Printer(commands.Cog):
                         encodedImage = base64.b64encode(s=responseimage.content).decode("utf-8")
                         await self.printer_print(inter= inter, text=encodedImage, type="image")
                     else: 
-                        await inter.edit_original_message("Sorry the printing service is not available. Please try again later")
+                        await inter.edit_original_message(content="Sorry the printing service is not available. Please try again later")
                 else:
-                    inter.edit_original_message("Something went wrong receiving your image. Please try again")
+                    await inter.edit_original_message(content="Something went wrong receiving your image. Please try again")
             else:
                 await inter.send("That's not an image. Please send an image")
         else: 
@@ -86,7 +75,7 @@ class Printer(commands.Cog):
                 }
             ]
         }
-        printResponse = requests.post(f"{config.get('API_URL')}/print_zettel", json=body)
+        printResponse = requests.post(f"{config.get('API_URL')}{config.get('PRINT_ENDPOINT')}", json=body)
         if(printResponse.status_code == 200):
             await inter.edit_original_message(content="Printed sucessfully")
         else: 
@@ -97,7 +86,7 @@ class Printer(commands.Cog):
         await inter.send("Sorry this feature is currently not available. Please try again later")
 
     def isReady(self):
-        response = requests.get(f"{config.get('API_URL')}/ready")
+        response = requests.get(f"{config.get('API_URL')}{config.get('READCHECK_ENDPOINT')}")
         if(response.status_code == 200):
             return response.json()["ready"]
         else: 
