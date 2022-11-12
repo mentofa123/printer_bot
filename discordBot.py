@@ -29,7 +29,7 @@ class Printer(commands.Cog):
         return any(authorId == id for id in json.loads(config.get("ADMIN_ID")))  
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+    async def on_command_error(self, _, error: commands.CommandError):
         if isinstance(error, commands.CommandNotFound):
             return
         raise error
