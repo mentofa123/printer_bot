@@ -77,6 +77,11 @@ class Printer(commands.Cog):
         }
         printResponse = requests.post(f"{config.get('API_URL')}{config.get('PRINT_ENDPOINT')}", json=body)
         if(printResponse.status_code == 200):
+            try:
+                requests.post(f"{config.get('SOUND_URL')}")
+            except:
+                print("an error occured making the request. This is not the same as a bad response.")
+            
             await inter.edit_original_message(content="Printed sucessfully")
         else: 
             print(printResponse.content)
