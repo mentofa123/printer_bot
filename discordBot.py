@@ -15,13 +15,21 @@ class Printer(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.canPrint = True
-        self.image_print_state = dict()
+        self.canPlaySound = True
 
     @commands.command(name="toggle_print")
     async def toggle_print(self, ctx: commands.Context):
         if(self.admin_check(ctx.author.id)):
             self.canPrint = not self.canPrint
             await ctx.send(f'printing feature toggled {"on" if self.canPrint else "off"}')
+        else: 
+            await ctx.send("Sorry but you are not authorized to use this command")
+    
+    @commands.command(name="toggle_sound")
+    async def toggle_sound(self, ctx: commands.Context):
+        if(self.admin_check(ctx.author.id)):
+            self.canPlaySound = not self.canPlaySound
+            await ctx.send(f'sound playing feature toggled {"on" if self.canPlaySound else "off"}')
         else: 
             await ctx.send("Sorry but you are not authorized to use this command")
     
@@ -67,7 +75,7 @@ class Printer(commands.Cog):
     async def printer_print(self, inter:nextcord.Interaction, text:str, type: str):
         body = {
         "author":f"{inter.user.display_name}",
-        "origin": inter.channel.name if not isinstance(inter.channel, nextcord.channel.PartialMessageable) else "",
+        "origin": inter.channel.name if not isinstance(inter.channel, nextcord.channel.PartialMessageable) else "Discord",
         "content": [
                 {
                     "data": text,
@@ -78,7 +86,8 @@ class Printer(commands.Cog):
         printResponse = requests.post(f"{config.get('API_URL')}{config.get('PRINT_ENDPOINT')}", json=body)
         if(printResponse.status_code == 200):
             try:
-                requests.post(f"{config.get('SOUND_URL')}")
+                if(self.canPlaySound):
+                    requests.post(f"{config.get('SOUND_URL')}")
             except:
                 print("an error occured making the request. This is not the same as a bad response.")
             
